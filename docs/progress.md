@@ -3,10 +3,16 @@
 ## Phase 0：项目初始化
 已完成。
 
-## Phase 1：Windows 10 / Tesla V100 32GB / uv / ComfyUI
+## Phase 1：Windows / uv / ComfyUI 基础环境
+- [x] 用户反馈安装完成，ComfyUI 网页可打开
+- [x] 后台 OpenGL 可选加速模块提示已记录
+- [ ] CUDA 实算成功输出待确认（仅打印版本号不足以证明通过）
 
-- **已完成（用户反馈）**：uv 管理的环境安装；ComfyUI 后台启动；网页正常显示。
-- **已记录**：后台出现 `no opengl-accelerate module loaded`；暂不判定为故障，具体来源待必要时排查。
-- **待完成**：运行 `scripts/verify_windows_v100.ps1` 做 CUDA 实算；图像生成；首个 5 秒视频 Demo。
+## Phase 2：图像生成准备
+- [x] 提交 CUDA 验证与模型目录检查脚本
+- [x] 提交中文操作手册
+- [ ] CUDA 实算通过
+- [ ] 选定并下载许可清晰的图像模型
+- [ ] 生成第一张《消失的信号》实验室画面
 
-操作入口：[docs/操作指南.md](操作指南.md)。
+当前入口：[docs/操作指南.md](操作指南.md)。
