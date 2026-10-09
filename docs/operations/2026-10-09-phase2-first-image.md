@@ -1,47 +1,61 @@
-# Phase 2：GPU 最终确认与首张图片准备
+# Phase 2：生成《消失的信号》第一张实验室画面
 
-## 当前情况
+**状态：V100 CUDA 验证已通过（用户反馈）。模型下载和图片生成尚未执行。**
 
-用户已安装 ComfyUI 且网页能打开，验证脚本曾打印版本号，但尚未明确确认 CUDA 运算通过。因此本阶段先执行 **CUDA 实算 + 模型目录检查**，不重新安装 ComfyUI。
+## 使用位置
 
-## 操作位置
+所有命令都在本地 `emc-vision-studio` 仓库根目录的 PowerShell 执行。默认 ComfyUI 根目录为 `D:\AI-Video`，如安装在其他盘，修改 `-Root`。
 
-本地 GitHub 项目根目录：`emc-vision-studio`。
-
-ComfyUI 默认安装根目录：`D:\AI-Video`（如果当时修改过安装位置，以下命令同步修改 `-Root`）。
-
-## 第一步：更新脚本
-
-在项目根目录的 PowerShell 执行：
+## 第一步：更新项目
 
 ```powershell
 git pull
 ```
 
-## 第二步：执行一次验证和模型目录准备
+## 第二步：下载第一张图所需的模型
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\verify_and_prepare_phase2.ps1 -Root "D:\AI-Video"
+powershell -ExecutionPolicy Bypass -File .\scripts\download_first_image_model.ps1 -Root "D:\AI-Video"
 ```
 
-这个脚本会自动执行 V100 CUDA 矩阵运算，并打印已有模型文件名。**不会下载模型、不会重装环境、不会修改已有模型。**
+使用 SD 1.5 的 fp16 checkpoint，文件约 2GB，存入 `D:\AI-Video\ComfyUI\models\checkpoints\`。脚本检查文件大小；如果网络无法访问 Hugging Face，则停止并保留 .part 文件，不伪称成功。该模型用于**技术可行性演示**，后续正式视频使用的模型和商用许可需单独审查。
 
-## 如何判断通过
+## 第三步：重启 ComfyUI
 
-应看到：
+如果 ComfyUI 正在运行，关闭原来的启动窗口，再从项目根目录运行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\start_windows_v100.ps1 -Root "D:\AI-Video"
+```
+
+浏览器打开 http://127.0.0.1:8188 。
+
+## 第四步：自动提交生成任务
+
+在另一个 PowerShell 窗口、项目根目录运行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\generate_first_image.ps1 -Root "D:\AI-Video"
+```
+
+任务通过 ComfyUI 本地 API 提交；脚本显示 `QUEUE SUBMITTED` 仅表示已入队，不表示图片已经成功生成。请到 ComfyUI 的任务列表检查结果。
+
+## 第五步：查看图片
+
+默认输出目录：
 
 ```text
-CUDA 矩阵运算：通过
-模型目录：D:\AI-Video\ComfyUI\models\checkpoints
-验证完成。尚未下载或安装任何图像/视频模型。
+D:\AI-Video\ComfyUI\output
 ```
 
-如果只打印 PyTorch 版本号，但没有“CUDA 矩阵运算：通过”，就不能判定 GPU 验证通过。
+文件名以 `lost_signal_lab_S001_` 开头。图像尺寸 768×512，固定种子 20261009，24 步 Euler 采样。完整工作流：`workflows/text-to-image/first-lab-sd15-api.json`。
 
-## 下一步：首张图片
+## 验收
 
-GPU 验证通过后，再选择一个许可证清晰、适合 V100 32GB 的图像模型，提供模型下载、校验、ComfyUI 工作流及首张实验室场景图的生成步骤。当前尚未选择并安装模型，也尚未生成图片。
+- [x] CUDA 矩阵计算通过（用户反馈）
+- [ ] 下载模型成功
+- [ ] ComfyUI 模型加载成功
+- [ ] 生成并查看第一张图片
+- [ ] 将结果和运行记录提交 GitHub
 
-## 关于后台 OpenGL 提示
-
-`no opengl-accelerate module loaded` 不是 CUDA 推理失败的直接证据；若 CUDA 实算通过且 ComfyUI 正常使用，可以暂时忽略。
+**注意：** 该图片为概念画面，不代表真实 EMC 测量数据。生成后再做专业技术画面审核。
