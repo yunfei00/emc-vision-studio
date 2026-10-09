@@ -1,0 +1,31 @@
+{
+  "production": "001-lost-signal",
+  "status": "planning",
+  "shots": [
+    {
+      "id": "S001",
+      "status": "planned",
+      "render": null
+    },
+    {
+      "id": "S002",
+      "status": "planned",
+      "render": null
+    },
+    {
+      "id": "S003",
+      "status": "planned",
+      "render": null
+    },
+    {
+      "id": "S004",
+      "status": "planned",
+      "render": null
+    },
+    {
+      "id": "S005",
+      "status": "planned",
+      "render": null
+    }
+  ]
+}
