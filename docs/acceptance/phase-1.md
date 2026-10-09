@@ -1,11 +1,11 @@
-# Phase 1 acceptance template
+# Phase 1 — Windows 10 Tesla V100 acceptance
 
-- [ ] Current GPU/driver/disk report (sanitized)
-- [ ] Compatible PyTorch/CUDA installation with exact versions
-- [ ] ComfyUI starts on localhost
-- [ ] GPU inference smoke test passes
-- [ ] Model license and hashes documented
-- [ ] ~5s test video generated and playable
-- [ ] Logs and reproducible steps committed
+- [ ] Run `scripts/check_gpu.ps1` and record actual VRAM and driver
+- [ ] Verify PyTorch version supports Volta sm_70 and installed driver
+- [ ] Install isolated ComfyUI environment with pinned versions
+- [ ] CUDA tensor smoke test passes
+- [ ] Compatible video model installed with commercial license reviewed
+- [ ] Generate and play short video
+- [ ] Commit workflow, prompts, media via Git LFS, logs and QA
 
-Environment: TBD. Evidence links: TBD. Failures and fixes: TBD. Reviewer: TBD.
+Status: NOT STARTED. Do not confuse 128GB system RAM with VRAM.
