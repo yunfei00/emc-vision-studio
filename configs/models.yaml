@@ -1,0 +1,8 @@
+models:
+  - id: wan2.2-ti2v-5b
+    role: initial text/image-to-video candidate
+    status: proposed_not_installed
+    upstream: TBD
+    license_review: pending
+    model_hash: TBD
+    local_path: external_to_git
