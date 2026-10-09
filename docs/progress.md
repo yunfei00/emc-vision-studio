@@ -2,9 +2,9 @@
 
 | Phase | Status | Evidence |
 |---|---|---|
-| 0 | PASS | Baseline `b954a5b914721c27d96359be8ea35b5c10b47431` |
-| 1 | Planning / hardware inspection pending | Windows 10 + Tesla V100 + 128GB RAM reported; scripts/check_gpu.ps1 |
-| 2–5 | Not started | Phase records pending |
+| 0 | PASS | Initial project baseline and verification |
+| 1 | Planning; installation not executed | Windows 10, Tesla V100 32GB VRAM, 128GB RAM, 2TB disk confirmed by user |
+| 2–5 | Not started | Pending |
 
-## Change 2026-10-09
-Switched primary environment from RTX 5090/Linux to Tesla V100/Windows 10. Public GitHub will include generated study images/videos/audio using Git LFS when appropriate, plus prompts, workflows and logs. Credentials and unlicensed materials remain excluded. Next: collect GPU driver and VRAM evidence.
+## Hardware baseline 2026-10-09
+Use the confirmed specifications without repeatedly requesting diagnostics. Driver/version checks only when compatibility testing makes them necessary. Next: design a Windows-compatible isolated ComfyUI installation and select a Volta-compatible model, then run actual installation and inference before claiming success.
