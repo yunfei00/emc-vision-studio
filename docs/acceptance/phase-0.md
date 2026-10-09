@@ -1,10 +1,11 @@
-# Phase 0 acceptance
+# Phase 0 acceptance — PASS (2026-10-09)
 
-- [x] Public repo selected: `yunfei00/emc-vision-studio`
-- [x] Scope, deliverables and phase gates defined
-- [x] Public-data and commercial-compliance policy drafted
-- [x] Templates for production and QA defined
-- [ ] All baseline files committed and read back from GitHub
-- [ ] Final commit SHA recorded in progress log
+- [x] Public repository confirmed: `yunfei00/emc-vision-studio`
+- [x] Scope, phases, deliverables and acceptance gates documented
+- [x] Commercial and confidentiality boundaries documented
+- [x] Production, workflow, environment and QA templates committed
+- [x] 30 tracked files independently verified in GitHub tree
+- [x] Commit recorded in progress log
 
-Status: pending readback verification. Do not claim Phase 1 complete.
+Evidence baseline commit: `b954a5b914721c27d96359be8ea35b5c10b47431`.
+Phase 1 not started. Company publication still requires approvals.
