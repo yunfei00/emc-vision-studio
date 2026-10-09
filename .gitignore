@@ -1,4 +1,4 @@
-# Local environments and secrets
+# Secrets and local environments
 .env
 .env.*
 !.env.example
@@ -7,23 +7,14 @@ __pycache__/
 *.pyc
 *.key
 *.pem
-# Model weights and generated assets
+# Model weights, cache, temp outputs
 *.safetensors
 *.ckpt
 *.pt
 *.pth
 *.gguf
-*.mp4
-*.mov
-*.wav
-*.flac
-*.png
-*.jpg
-*.jpeg
-*.webp
-*.zip
 models/
-outputs/
-input-private/
 cache/
-logs/
+input-private/
+logs/private/
+# Generated images/videos/audio are tracked using Git LFS where configured
