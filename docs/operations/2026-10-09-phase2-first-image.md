@@ -58,3 +58,22 @@ powershell -ExecutionPolicy Bypass -File .\scripts\generate_first_image.ps1 -Roo
 - [x] 国内魔搭下载脚本及生成脚本适配已提交
 - [ ] 魔搭模型下载完成
 - [ ] 图片实际生成成功
+
+
+## 手机下载与 Windows 证书吊销列表报错（2026-10-09）
+
+### 手机下载地址
+
+- 魔搭模型页面：https://www.modelscope.cn/models/AI-ModelScope/stable-diffusion-v1-5
+- 魔搭文件直链：https://modelscope.cn/api/v1/models/AI-ModelScope/stable-diffusion-v1-5/repo?Revision=master&FilePath=v1-5-pruned-emaonly.ckpt
+- 目标文件：`v1-5-pruned-emaonly.ckpt`，约 4.27 GB。
+
+手机完成下载后，使用数据线或其他可靠方式传到 Windows 的 `D:\AI-Video\ComfyUI\models\checkpoints\` 目录（如果安装根目录不是 D 盘，以实际目录为准）。确保文件名不变，不要将手机未下载完的临时文件重命名为 .ckpt。传输完成后重启 ComfyUI，再执行本手册中的首图生成步骤。
+
+### Windows HTTPS 证书错误
+
+用户报告 Windows 下载提示系统安全通道无法检查 HTTPS 证书吊销列表。Windows `curl.exe` 使用 Schannel 时可能因无法访问 CRL/OCSP 服务出现此问题。这与模型内容本身不一定有关。
+
+建议优先手机或浏览器下载，避免修改系统安全配置。若后续必须通过命令行下载，可先检查系统时间、网络代理、证书吊销服务的可达性；`curl.exe --ssl-no-revoke` 可以临时跳过吊销检查，但**降低证书验证安全性，不作为默认脚本参数**。不要使用 `-k` 或 `--insecure` 关闭全部证书校验。
+
+参考：https://knowledge.broadcom.com/external/article/394745/windows-curl-command-fails-with-certific.html
