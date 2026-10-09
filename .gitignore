@@ -1,0 +1,29 @@
+# Local environments and secrets
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.pyc
+*.key
+*.pem
+# Model weights and generated assets
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.gguf
+*.mp4
+*.mov
+*.wav
+*.flac
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.zip
+models/
+outputs/
+input-private/
+cache/
+logs/
