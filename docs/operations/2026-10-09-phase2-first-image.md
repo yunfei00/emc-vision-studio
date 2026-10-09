@@ -1,79 +1,60 @@
-# Phase 2：首张实验室画面——国内镜像与断点续传版
+# Phase 2：国内 ModelScope 下载优先方案
 
-## 当前状态
+## 当前问题与处理
 
-V100 CUDA 运算已经通过（用户反馈）。已将原来基于 `Invoke-WebRequest` 的下载方式改为 **Hugging Face 国内镜像 + curl.exe 断点续传**。本地下载尚未验证成功。
+用户反馈 Hugging Face 镜像下载速度很慢、长期卡住。**停止继续等待旧下载任务**，改为使用魔搭 ModelScope 国内托管的 Stable Diffusion 1.5 checkpoint。该文件与先前 HF fp16 文件**不是同一个文件**，不能将原 `.part` 续传到新文件；旧 `.part` 可以保留，不影响新方案。
 
-## 文件位置
+魔搭模型页面：https://www.modelscope.cn/models/AI-ModelScope/stable-diffusion-v1-5 。魔搭官方社区提供过 `v1-5-pruned-emaonly.ckpt` 的下载接口，约 4GB。下载速度受实际网络影响，**无法保证一定更快**。
 
-- 本文档：`emc-vision-studio\docs\operations\2026-10-09-phase2-first-image.md`
-- 下载脚本：`emc-vision-studio\scripts\download_first_image_model.ps1`
-- 默认模型目录：`D:\AI-Video\ComfyUI\models\checkpoints`
+## 第一步：停止原来的下载
 
-## 第一步：更新项目
+在原下载窗口按 `Ctrl+C`。不要删除 `D:\AI-Video\ComfyUI\models\checkpoints\v1-5-pruned-emaonly-fp16.safetensors.part`，以后仍可恢复原任务。
 
-在本地 `emc-vision-studio` 根目录打开 PowerShell：
+## 第二步：更新 GitHub 脚本
+
+在本地 `emc-vision-studio` 项目根目录打开 PowerShell：
 
 ```powershell
 git pull
 ```
 
-## 第二步：使用国内镜像下载（推荐）
+## 第三步：使用魔搭国内下载
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\download_first_image_model.ps1 -Root "D:\AI-Video" -Source mirror
+powershell -ExecutionPolicy Bypass -File .\scripts\download_modelscope_sd15.ps1 -Root "D:\AI-Video"
 ```
 
-镜像站：`https://hf-mirror.com`。如果此前下载中断，**再次执行同一条命令**。临时文件会保存在模型目录中，以 `.safetensors.part` 结尾。脚本使用 `curl.exe --continue-at -` 尝试 HTTP Range 续传。是否真正续传取决于服务器是否支持 Range；若不支持，curl 会报错而不是将部分文件当成成功结果。
+下载保存为：`D:\AI-Video\ComfyUI\models\checkpoints\v1-5-pruned-emaonly.ckpt`。
 
-> 如果安装根目录不是 D 盘，修改 `-Root` 为你的实际安装目录。
+脚本支持 `curl.exe --continue-at -` 断点续传尝试，网络长期低于 10KB/s 时会主动中止，以便重试；服务端需支持 HTTP Range。文件不足预期大小时不会当作成功。**当前尚未在用户机器上验证下载速度或完整文件哈希。**
 
-### 备用：官方源
+## 第四步：重启 ComfyUI
 
-镜像不可用时：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\download_first_image_model.ps1 -Root "D:\AI-Video" -Source official
-```
-
-**注意：** 不同来源可能重定向到不同存储端点；如果已有 `.part` 文件，切换来源后应先确认两边文件确实一致，否则不要盲目混用部分文件。
-
-## 第三步：启动 ComfyUI
-
-下载成功后，重启 ComfyUI：
+在原 ComfyUI 窗口按 `Ctrl+C` 停止，再在项目根目录执行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\start_windows_v100.ps1 -Root "D:\AI-Video"
 ```
 
-浏览器：`http://127.0.0.1:8188`。
+## 第五步：生成第一张图片
 
-## 第四步：生成第一张图片
-
-在另一个 PowerShell 窗口、项目根目录运行：
+另开一个 PowerShell 窗口，在项目根目录执行：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\generate_first_image.ps1 -Root "D:\AI-Video"
+powershell -ExecutionPolicy Bypass -File .\scripts\generate_first_image.ps1 -Root "D:\AI-Video" -Model modelscope
 ```
 
-看到 `QUEUE SUBMITTED` 只代表已入队。真正生成成功后，图片在：
+默认输出位置：`D:\AI-Video\ComfyUI\output`，文件名以 `lost_signal_lab_S001_` 开头。
 
-```text
-D:\AI-Video\ComfyUI\output
-```
+**注意：** `QUEUE SUBMITTED` 只代表已提交任务，不代表生成成功。生成成功需要检查 ComfyUI 页面和输出图片。
 
-文件名以 `lost_signal_lab_S001_` 开头。
+## 备用方案
 
-## 备用国内平台
-
-魔搭社区：https://modelscope.cn/ 。其官方 CLI 支持 `modelscope download --model <仓库ID> --local_dir <目录>`。但**尚未核实本项目指定 checkpoint 的魔搭仓库 ID**，因此没有编造下载命令。先使用镜像方式，后续如有准确的魔搭模型仓库再增加对应脚本。
+如果魔搭下载也慢，可以改用浏览器/下载管理器从魔搭模型页面下载该 checkpoint，再手动放入上面的 `checkpoints` 目录；必须保留准确文件名。先不要反复切换源、混用不同模型的 `.part` 文件。
 
 ## 验收状态
 
-- [x] CUDA 运算通过（用户反馈）
-- [x] 镜像与断点续传脚本已提交
-- [ ] 模型完整下载并校验
-- [ ] 图片生成成功
-- [ ] 结果提交 GitHub
-
-参考：https://hf-mirror.com/ 、https://github.com/modelscope/modelscope/blob/master/docs/source/command.md
+- [x] V100 CUDA 验证（用户反馈）
+- [x] 国内魔搭下载脚本及生成脚本适配已提交
+- [ ] 魔搭模型下载完成
+- [ ] 图片实际生成成功
