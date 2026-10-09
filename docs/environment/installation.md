@@ -1,10 +1,9 @@
-# Installation runbook — Windows 10 / Tesla V100 (draft, not executed)
+# 环境安装原则
 
-1. In PowerShell run `powershell -ExecutionPolicy Bypass -File scripts/check_gpu.ps1` to record GPU VRAM, driver, OS, RAM, Python and Git.
-2. Review PyTorch wheel, NVIDIA driver and Tesla V100 compute capability compatibility before installing. Do not assume latest wheels support sm_70.
-3. Create a Python virtual environment or Conda environment and clone a pinned ComfyUI version.
-4. Install a compatible PyTorch build, dependencies and model; record exact versions and model licenses.
-5. Launch on `127.0.0.1:8188`, verify CUDA operations and render a short low-resolution test clip.
-6. Commit scripts, sanitized logs, workflow, prompts, media and QA evidence. Use Git LFS for larger generated assets.
+目标：Windows 10、Tesla V100 32GB 显存、128GB 内存、2TB 硬盘。
 
-No installation or render has been performed yet. Use Windows PowerShell rather than Linux shell scripts.
+**所有 Python 版本、虚拟环境、依赖安装统一使用 uv。** 不使用 Conda、python -m venv 或 pip 命令。详细复制命令统一在 [Phase 1 中文操作手册](../operations/2026-10-09-phase1-windows-v100.md)。
+
+脚本：`scripts/install_windows_v100.ps1`；启动：`scripts/start_windows_v100.ps1`。
+
+安装与渲染尚未实机验收。
