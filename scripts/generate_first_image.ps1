@@ -1,17 +1,18 @@
-param([string]$Root = "D:\AI-Video", [string]$Server = "http://127.0.0.1:8188")
+param(
+  [string]$Root = "D:\AI-Video",
+  [string]$Server = "http://127.0.0.1:8188",
+  [ValidateSet("modelscope","hf")][string]$Model = "modelscope"
+)
 $ErrorActionPreference = "Stop"
 $repo = Split-Path -Parent $PSScriptRoot
 $workflowPath = Join-Path $repo "workflows\text-to-image\first-lab-sd15-api.json"
-$modelPath = Join-Path $Root "ComfyUI\models\checkpoints\v1-5-pruned-emaonly-fp16.safetensors"
-if (-not (Test-Path $modelPath)) { throw "Model not found: $modelPath. Run download_first_image_model.ps1 first." }
+$filename = if ($Model -eq "modelscope") { "v1-5-pruned-emaonly.ckpt" } else { "v1-5-pruned-emaonly-fp16.safetensors" }
+$modelPath = Join-Path (Join-Path $Root "ComfyUI\models\checkpoints") $filename
+if (-not (Test-Path $modelPath)) { throw "Model not found: $modelPath" }
 $workflow = Get-Content -Raw -Encoding UTF8 $workflowPath | ConvertFrom-Json
+$workflow.'1'.inputs.ckpt_name = $filename
 $body = @{prompt=$workflow;client_id="emc-vision-studio"} | ConvertTo-Json -Depth 30
-try {
-  $response = Invoke-RestMethod -Method Post -Uri "$Server/prompt" -ContentType "application/json" -Body ([System.Text.Encoding]::UTF8.GetBytes($body))
-  if ($response.error) { throw ($response.error | ConvertTo-Json -Depth 10) }
-  Write-Host "QUEUE SUBMITTED: $($response.prompt_id)"
-  Write-Host "Check output directory: $(Join-Path $Root 'ComfyUI\output')"
-} catch {
-  Write-Host "Submission failed. Make sure ComfyUI is running on port 8188 and restart it after adding the model."
-  throw
-}
+$response = Invoke-RestMethod -Method Post -Uri "$Server/prompt" -ContentType "application/json" -Body ([System.Text.Encoding]::UTF8.GetBytes($body))
+if ($response.error) { throw ($response.error | ConvertTo-Json -Depth 10) }
+Write-Host "QUEUE SUBMITTED: $($response.prompt_id)"
+Write-Host "Check actual result in ComfyUI output directory."
