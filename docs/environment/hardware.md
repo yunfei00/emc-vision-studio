@@ -1,5 +1,7 @@
-# Hardware baseline
+# Hardware baseline — 2026-10-09
 
-Candidate main GPU: NVIDIA RTX 5090 32GB. Secondary: Tesla V100 32GB. Prior reported driver 575.64.03 and CUDA 12.9 are **historical, not current verification**.
+**Confirmed by user:** Windows 10 workstation, NVIDIA Tesla V100, 128 GB system RAM. GPU VRAM capacity, driver and CUDA runtime are pending inspection. The previous RTX 5090/Linux plan is superseded for this project.
 
-Before choosing PyTorch wheels, record `nvidia-smi`, `python3 --version`, OS, disk and available VRAM. Avoid assuming CUDA 13 driver compatibility. Keep confidential hostnames and addresses out of this public repo.
+Tesla V100 is Volta (compute capability 7.0). Do not assume BF16, FlashAttention-2 or recent CUDA-only attention kernels work. Prefer validated FP16 and conservative offloading; model support and commercial license must be checked before download.
+
+Run `powershell -ExecutionPolicy Bypass -File scripts/check_gpu.ps1` and attach results to Phase 1 acceptance.
