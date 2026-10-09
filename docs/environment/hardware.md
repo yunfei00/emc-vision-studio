@@ -1,7 +1,13 @@
-# Hardware baseline — 2026-10-09
+# Confirmed hardware baseline — 2026-10-09
 
-**Confirmed by user:** Windows 10 workstation, NVIDIA Tesla V100, 128 GB system RAM. GPU VRAM capacity, driver and CUDA runtime are pending inspection. The previous RTX 5090/Linux plan is superseded for this project.
+| Component | Specification |
+|---|---|
+| OS | Windows 10 |
+| GPU | NVIDIA Tesla V100 |
+| GPU VRAM | 32 GB |
+| System RAM | 128 GB |
+| Disk | 2 TB |
+| Framework | ComfyUI |
+| Repository | Public GitHub, including learning media with Git LFS |
 
-Tesla V100 is Volta (compute capability 7.0). Do not assume BF16, FlashAttention-2 or recent CUDA-only attention kernels work. Prefer validated FP16 and conservative offloading; model support and commercial license must be checked before download.
-
-Run `powershell -ExecutionPolicy Bypass -File scripts/check_gpu.ps1` and attach results to Phase 1 acceptance.
+User-provided hardware specifications are authoritative. Do not ask for the same details again. Driver version is unknown and should be checked only when needed for actual PyTorch compatibility or debugging. V100 uses Volta compute capability 7.0; avoid mandatory BF16, FlashAttention-2 and newer architecture-only kernels. Prior RTX 5090/Linux plan is superseded.
