@@ -1,61 +1,53 @@
 # Phase 1：Windows 10 + Tesla V100（uv 环境管理）操作手册
 
-**状态：已编写并提交脚本，尚未在目标电脑实际运行验证。**
+## 当前进度（2026-10-09）
 
-## 已确认配置
+用户已在 Windows 10 / Tesla V100 32GB 上完成安装，并确认 **ComfyUI 网页正常打开**。后台出现 `no opengl-accelerate module loaded`。该消息通常只说明可选 OpenGL 加速模块未加载，**单凭此消息不能判定 CUDA 故障**。不需要仅为该提示重装 ComfyUI。
 
-Windows 10、Tesla V100 32GB 显存、128GB 系统内存、2TB 硬盘。Python 安装、虚拟环境创建和依赖管理全部由 **uv** 负责，不使用 Conda，也不要求单独安装 Python。
+**已验证：** 本地 Web 界面可访问（用户反馈）。**待验证：** CUDA 实算、模型加载和视频生成。
 
-## 第一步：准备 uv 和 Git
+## 一、Python 环境管理
 
-- uv 官方 Windows 安装说明：https://docs.astral.sh/uv/getting-started/installation/
-- Git for Windows：https://git-scm.com/download/win
+全程使用 **uv** 管理 Python 3.12、虚拟环境和依赖；不使用 Conda。
 
-在 PowerShell 安装 uv：
+## 二、当前需要执行的操作：CUDA 验证
 
-```powershell
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-```
-
-安装 Git for Windows 后，重新打开 PowerShell。若已经安装 uv/Git，跳过本步骤。
-
-## 第二步：获取项目
+打开 PowerShell，进入已经克隆的 `emc-vision-studio` 仓库目录，先更新脚本：
 
 ```powershell
-git clone https://github.com/yunfei00/emc-vision-studio.git
-cd emc-vision-studio
+git pull
 ```
 
-已经克隆则进入项目目录执行 `git pull`。
-
-## 第三步：运行 uv 自动安装
+然后运行：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install_windows_v100.ps1 -Root "D:\AI-Video"
+powershell -ExecutionPolicy Bypass -File .\scripts\verify_windows_v100.ps1 -Root "D:\AI-Video"
 ```
 
-脚本自动执行：`uv python install 3.12`、`uv venv`、`uv pip install`；安装 PyTorch 2.7.0/cu126 候选版本；运行两次 V100 CUDA 矩阵测试；拉取并安装 ComfyUI 依赖。**如果 V100 的 sm_70 不受当前 PyTorch wheel 支持，脚本会停止，不能视为安装成功。**
+若之前将 ComfyUI 安装到 C 盘或其他路径，修改 `-Root` 为安装时使用的路径。
 
-> 2TB 硬盘容量不等于 D 盘一定存在。如果没有 D 盘，请将 `-Root` 改成实际有足够空间的目录，如 `"C:\AI-Video"`。
+**通过标准：** 看到 `GPU 架构: (7, 0)` 和 `CUDA 矩阵运算：通过`。若失败，保留错误信息，不要盲目升级驱动或重装全部依赖。
 
-## 第四步：启动 ComfyUI
+## 三、后续启动
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\start_windows_v100.ps1 -Root "D:\AI-Video"
 ```
 
-浏览器打开：http://127.0.0.1:8188
+浏览器访问 http://127.0.0.1:8188 。
 
-## 第五步：验收
+## 四、OpenGL 提示如何处理
 
-- [ ] uv 可运行，Python 3.12 由 uv 安装
-- [ ] V100 GPU CUDA 实算通过
-- [ ] ComfyUI 能启动且本机网页可访问
-- [ ] 后续安装兼容视频模型并生成可播放的 5 秒 Demo
+- `no opengl-accelerate module loaded` **不是 CUDA 推理失败的直接证据**。
+- 若网页正常、CUDA 验证通过，暂时忽略。
+- 如果后续具体节点出现 OpenGL 错误，再定位该节点所属插件及其依赖；不预先安装未知来源的模块。
+- 这条提示的准确来源尚未定位，不把它标记为已经彻底修复。
 
-### 注意
+## 五、阶段验收
 
-- 目前只交付环境安装脚本，尚未远程执行或生成 Demo。
-- Tesla V100 是 Volta sm_70，不使用要求 BF16/FlashAttention-2 的方案。
-- ComfyUI 上游依赖会变化，安装后必须再次检查 CUDA 实算。
-- Python 包管理仅使用 uv，**不使用 pip 命令、Conda 或系统 Python 虚拟环境管理**。
+- [x] ComfyUI 网页可打开（用户反馈）
+- [ ] Tesla V100 CUDA 矩阵运算通过
+- [ ] 加载合适的模型并成功生成图像
+- [ ] 生成首个 5 秒视频 Demo
+
+**注意：** 目前没有实际生成的媒体文件，不能声称视频制作已完成。
