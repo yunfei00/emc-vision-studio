@@ -65,6 +65,8 @@ def main():
         cmd += ["-i", str(voice)]
     if music:
         cmd += ["-i", str(music)]
+    subtitle_input_index = 1 + int(bool(voice)) + int(bool(music))
+    cmd += ["-i", str(subtitle)]
     if voice and music:
         cmd += ["-filter_complex", "[1:a]volume=1.0,apad,atrim=duration=103[v];[2:a]volume=0.16,apad,atrim=duration=103[m];[v][m]amix=inputs=2:duration=longest:normalize=0[a]",
                 "-map", "0:v:0", "-map", "[a]", "-c:a", "aac", "-b:a", "192k"]
@@ -78,7 +80,7 @@ def main():
     # Prefer a soft subtitle stream to avoid Windows drawtext/font dependencies.
     if args.burn_subtitles:
         print("Burn-in requested, but not supported in this baseline; using selectable SRT track instead.", flush=True)
-    cmd += ["-i", str(subtitle), "-map", str(2 if voice and music else 1 if voice or music else 1) + ":s:0",
+    cmd += ["-map", str(subtitle_input_index) + ":s:0",
             "-c:s", "mov_text", "-c:v", "copy", "-t", "103", "-movflags", "+faststart", str(target)]
     ffmpeg_run(cmd)
     (output / "manifest.json").write_text(json.dumps({
