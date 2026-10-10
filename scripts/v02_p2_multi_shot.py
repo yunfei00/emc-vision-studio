@@ -34,12 +34,12 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     paths = sorted({p.resolve() for folder in ("phase6", "phase9")
                     for p in (base / folder).rglob("*.mp4") if p.is_file()})
-    # Only accept unambiguous S01...S19 scene identifiers; never silently fill missing scenes.
+    # Recognize scene labels anywhere in filename, e.g. shot_S01_take2.mp4.\n    # If no labels exist, use a deterministic preview-only fallback.
     by_scene = {}
     for path in paths:
-        m = re.match(r"^(S(?:0[1-9]|1[0-9]))(?:[_-]|$)", path.stem, re.I)
+        m = re.search(r"(?<![A-Za-z0-9])S(0[1-9]|1[0-9])(?![0-9])", path.stem, re.I)
         if m and probe(ffprobe, path) >= 0.5:
-            key = m.group(1).upper()
+            key = "S" + m.group(1)
             by_scene.setdefault(key, []).append(path)
     selected = []
     for i in range(1, args.max_shots + 1):
@@ -56,7 +56,7 @@ def main():
                 "found_shots": len(selected), "missing_scenes":
                 ["S%02d" % i for i in range(1, args.max_shots + 1)
                  if "S%02d" % i not in {key for key, _ in selected}],
-                "shots": [], "note": "Preview only, not a final 103-second cut"}
+                "shots": [], "mapping_mode": "unlabelled_preview" if fallback else "scene_labels",\n                "note": "Unlabelled preview order is NOT verified story order"}
     segments = []
     for scene, source in selected:
         duration = probe(ffprobe, source)
@@ -94,7 +94,7 @@ def main():
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     print("P2 ASSEMBLY COMPLETE")
     print("Shots:", len(selected), "/", args.max_shots)
-    print("Missing scenes:", len(manifest["missing_scenes"]))
+    print("Missing scenes:", len(manifest["missing_scenes"]))\n    print("Mapping mode:", manifest["mapping_mode"])
     print("Preview seconds:", manifest["total_seconds"])
     print("Outputs remain local.")
 
