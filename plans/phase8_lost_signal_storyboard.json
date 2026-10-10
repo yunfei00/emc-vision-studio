@@ -1,0 +1,120 @@
+{
+  "title": "消失的信号",
+  "target_seconds": 103,
+  "version": "phase8-v1",
+  "character": "fictional Chinese male EMC engineer, about 30, short black hair, navy blue work jacket",
+  "acts": [
+    {
+      "title": "异常出现",
+      "shots": [
+        {
+          "id": "S001",
+          "seconds": 5
+        },
+        {
+          "id": "S002",
+          "seconds": 5
+        },
+        {
+          "id": "S007",
+          "seconds": 6
+        },
+        {
+          "id": "S008",
+          "seconds": 5
+        },
+        {
+          "id": "S009",
+          "seconds": 5
+        }
+      ]
+    },
+    {
+      "title": "调查线索",
+      "shots": [
+        {
+          "id": "S003",
+          "seconds": 5
+        },
+        {
+          "id": "S004",
+          "seconds": 5
+        },
+        {
+          "id": "S010",
+          "seconds": 6
+        },
+        {
+          "id": "S011",
+          "seconds": 5
+        },
+        {
+          "id": "S012",
+          "seconds": 6
+        }
+      ]
+    },
+    {
+      "title": "定位干扰",
+      "shots": [
+        {
+          "id": "S005",
+          "seconds": 5
+        },
+        {
+          "id": "S013",
+          "seconds": 6
+        },
+        {
+          "id": "S014",
+          "seconds": 5
+        },
+        {
+          "id": "S015",
+          "seconds": 6
+        },
+        {
+          "id": "S016",
+          "seconds": 5
+        }
+      ]
+    },
+    {
+      "title": "恢复与结尾",
+      "shots": [
+        {
+          "id": "S017",
+          "seconds": 6
+        },
+        {
+          "id": "S018",
+          "seconds": 5
+        },
+        {
+          "id": "S006",
+          "seconds": 6
+        },
+        {
+          "id": "S019",
+          "seconds": 6
+        }
+      ]
+    }
+  ],
+  "new_shot_prompts": {
+    "S007": "Chinese male EMC engineer about 30 years old, short black hair, navy blue work jacket, noticing an unexpected smartphone signal issue at a modern RF laboratory bench, medium cinematic shot",
+    "S008": "Close up of smartphone on EMC lab bench with abstract blank navigation screen, signal problem suggested by composition, no readable UI text, cinematic documentary",
+    "S009": "Chinese male EMC engineer about 30, short black hair, navy blue work jacket, writing troubleshooting notes at laboratory bench, spectrum analyzer behind, documentary realism",
+    "S010": "Chinese male EMC engineer about 30, short black hair, navy blue work jacket, carefully connecting RF coaxial cable to test instrument, professional EMC laboratory, realistic hands",
+    "S011": "Close up of spectrum analyzer in RF test lab showing abstract non readable interference peaks, realistic professional measurement instrument, cinematic macro photography",
+    "S012": "Chinese male EMC engineer about 30, short black hair, navy blue work jacket, comparing two test setups on EMC bench, analytical expression, cinematic medium shot",
+    "S013": "Chinese male EMC engineer about 30, short black hair, navy blue work jacket, inspecting cable shielding and grounding on an electronics test bench, realistic technical documentary",
+    "S014": "Chinese male EMC engineer about 30, short black hair, navy blue work jacket, noticing a suspicious RF cable connection, careful expression, shallow depth of field",
+    "S015": "Chinese male EMC engineer about 30, short black hair, navy blue work jacket, separating a suspect electronic accessory from smartphone measurement setup, EMC laboratory",
+    "S016": "Professional spectrum analyzer in RF laboratory showing calm abstract waveform after troubleshooting, no legible numbers, cinematic close up",
+    "S017": "Chinese male EMC engineer about 30, short black hair, navy blue work jacket, checking smartphone after resolving interference, calm satisfied expression, professional laboratory",
+    "S018": "Chinese male EMC engineer about 30, short black hair, navy blue work jacket, tidying RF measurement cables and tools on laboratory workbench, realistic cinematic lighting",
+    "S019": "Wide closing shot of modern EMC test laboratory, Chinese male engineer with short black hair and navy blue work jacket seen from behind at bench, quiet evening lighting"
+  },
+  "negative_prompt": "cartoon, anime, illustration, watermark, subtitles, readable text, logos, fake numbers, distorted hands, deformed fingers, broken smartphone, unrealistic connectors, low quality, blurry, duplicate objects"
+}
