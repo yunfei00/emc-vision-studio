@@ -100,7 +100,8 @@ def main():
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
     print("P2 ASSEMBLY COMPLETE")
     print("Shots:", len(selected), "/", args.max_shots)
-    print("Missing scenes:", len(manifest["missing_scenes"]))\n    print("Mapping mode:", manifest["mapping_mode"])
+    print("Missing scenes:", len(manifest["missing_scenes"]))
+    print("Mapping mode:", manifest["mapping_mode"])
     print("Preview seconds:", manifest["total_seconds"])
     print("Outputs remain local.")
 
