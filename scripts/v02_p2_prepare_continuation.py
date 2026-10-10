@@ -28,11 +28,15 @@ def main():
     folder = base / "v0.2" / "p2" / "continuation" / scene
     folder.mkdir(parents=True, exist_ok=True)
     frame = folder / "source_last_frame.png"
+    # These source clips are short (~2.3s). Seeking 0.1s from EOF can
+    # land after the last decodable frame and produce no PNG.
+    # Decode the short clip, reverse frames, and select its final decoded frame.
     cmd = [ffmpeg, "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
-           "-sseof", "-0.1", "-i", str(source), "-frames:v", "1", str(frame)]
+           "-i", str(source), "-an", "-vf", "reverse", "-frames:v", "1",
+           "-update", "1", str(frame)]
     result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode or not frame.is_file():
-        raise RuntimeError("Last frame extraction failed: " + result.stderr[-400:])
+    if result.returncode or not frame.is_file() or frame.stat().st_size == 0:
+        raise RuntimeError("Last frame extraction failed: " + result.stderr[-600:])
     metadata = {
         "scene": scene, "gap_seconds": item["gap_seconds"],
         "source_name": source.name, "last_frame_name": frame.name,
