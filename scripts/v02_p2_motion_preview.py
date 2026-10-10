@@ -43,7 +43,7 @@ def main():
     report = {"phase": "v0.2-P2", "clip_count": len(clips), "clips": inventory,
               "preview": "not_requested"}
     if args.preview:
-        selected = next((p for p in clips if probe(ffprobe, p) >= 1), None)
+        selected = next((p for p, info in zip(clips, inventory) if info.get("duration_seconds", 0) >= 1), None)
         if selected is None:
             raise RuntimeError("No usable preview clip")
         dest = out / "motion_preview.mp4"
