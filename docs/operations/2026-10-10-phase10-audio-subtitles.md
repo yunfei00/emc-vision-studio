@@ -1,40 +1,28 @@
-# Phase 10｜中文字幕与本地音频混合
+# Phase 10｜修复 Windows 10 自带播放器不显示中文字幕
 
-用户已确认 Phase 9 的 103 秒粗剪成功。此阶段首先提供**可运行的本地字幕和音频封装工具**，不下载新模型、不调用云端服务。
+用户反馈：Phase 10 的 MP4、SRT 和 TXT 均已生成，但 Windows 10 自带播放器不显示 MP4 内的可选字幕轨道。
 
-## 第一步：无外部音频，先验证字幕轨道
+## 修复
 
-仓库根目录 PowerShell：
+已修改 `scripts/make_phase10_audio_subtitles.py`：**默认将中文字幕直接烧录到画面**，不再依赖播放器对 mov_text 字幕轨道的支持。使用本地 FFmpeg 的 `subtitles/libass` 滤镜，字体优先使用 Windows 10 常见的 Microsoft YaHei。保留 `--soft-subtitles` 作为可选模式。
+
+## 重新运行
+
+不需要 ComfyUI，不需要重新生成 AI 视频。关闭正在播放旧 MP4 的播放器，在项目根目录 PowerShell 执行：
 
 ```powershell
 git pull
 powershell -ExecutionPolicy Bypass -File .\scripts\make_phase10_audio_subtitles.ps1 -Root "D:\AI-Video"
 ```
 
-输出：
+输出仍是：
 
-- `D:\AI-Video\private\lost-signal\phase10\lost_signal_phase10.mp4`
-- `D:\AI-Video\private\lost-signal\phase10\lost_signal_zh.srt`
-- `D:\AI-Video\private\lost-signal\phase10\narration_zh.txt`
+`D:\AI-Video\private\lost-signal\phase10\lost_signal_phase10.mp4`
 
-**注意：** MP4 使用可选的中文软字幕轨道，需要播放器开启字幕显示；字幕不是烧录到画面。默认没有人声或背景音乐，原始静音轨道保持不变。不要把这版误认为完整配音成片。
+脚本会覆盖旧版 MP4；`lost_signal_zh.srt` 和 `narration_zh.txt` 继续保留。字幕直接成为画面一部分，不用在播放器中开启字幕。首次运行需要重新编码 103 秒视频，耗时会比旧版封装长。
 
-## 第二步：如果已有本地配音/音乐
+如果报错 `FFmpeg build lacks subtitles/libass filter`，说明本机 FFmpeg 缺少字幕烧录功能；不要反复运行，反馈这个错误类型以便改用不依赖 libass 的方案。
 
-可选参数传入**本机音频文件**，支持 FFmpeg 可解码的常见格式：
+**当前仍未加入真人配音或背景音乐**。如已有本地录音或音乐，可以使用脚本的 `-Voice` 和 `-Music` 参数混合；不调用云端服务。
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\make_phase10_audio_subtitles.ps1 -Root "D:\AI-Video" -Voice "D:\AI-Video\private\lost-signal\audio\voice.wav" -Music "D:\AI-Video\private\lost-signal\audio\music.wav"
-```
-
-脚本按 103 秒截取音频、配音原音量、音乐 0.16 倍音量，混合成 AAC；只提供一个文件时也可以单独指定 `-Voice` 或 `-Music`。
-
-配音内容来自 [中文解说词](../../plans/phase10_narration_zh.json)，当前没有自动生成 TTS：要使用人声，需要已有本地录音或之后增加经过验证的离线中文语音方案。
-
-## 下一步
-
-先确认无音频版 MP4 可以播放、播放器可启用中文字幕，再决定是否增加离线 TTS 或使用本地录音。之后补充环境音效与音量验收。
-
-## 保密
-
-所有生成素材、录音、视频和日志只留本地，不上传 GitHub、聊天或第三方平台。
+所有图片、视频、录音和日志仅保留本地，不外传。
