@@ -87,9 +87,9 @@ def main():
     tmp = base / "lost_signal_phase10_voiced_new.tmp.mp4"
     # Compress voice slightly and duck the music during spoken segments.
     filters = ("[1:a]aresample=48000,acompressor=threshold=0.08:ratio=2.5:attack=15:release=180,"
-               "volume=1.2,alimiter=limit=0.90[v];"
+               "volume=1.2,alimiter=limit=0.90,asplit=2[v][side];"
                "[2:a]aresample=48000,volume=0.38[m];"
-               "[m][v]sidechaincompress=threshold=0.018:ratio=7:attack=45:release=350[duck];"
+               "[m][side]sidechaincompress=threshold=0.018:ratio=7:attack=45:release=350[duck];"
                "[v][duck]amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.92[a]")
     subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
                     "-i", str(source), "-i", str(voice), "-i", str(music),
