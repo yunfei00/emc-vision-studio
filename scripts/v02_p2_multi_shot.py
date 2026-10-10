@@ -32,38 +32,30 @@ def main():
     base = Path(args.root) / "private" / "lost-signal"
     output = base / "v0.2" / "p2" / "assembly"
     output.mkdir(parents=True, exist_ok=True)
-    paths = sorted({p.resolve() for folder in ("phase6", "phase9")
-                    for p in (base / folder).rglob("*.mp4") if p.is_file()})
-    # Recognize scene labels anywhere in filename, e.g. shot_S01_take2.mp4.
-    # If no labels exist, use a deterministic preview-only fallback.
-    by_scene = {}
-    for path in paths:
-        m = re.search(r"(?<![A-Za-z0-9])S(0[1-9]|1[0-9])(?![0-9])", path.stem, re.I)
-        if m and probe(ffprobe, path) >= 0.5:
-            key = "S" + m.group(1)
-            by_scene.setdefault(key, []).append(path)
+    # The original production uses S001-S019, not S01-S19.
+    # Use only original scene clips, never rough cuts or concatenated previews.
     selected = []
+    missing = []
     for i in range(1, args.max_shots + 1):
-        key = "S%02d" % i
-        candidates = by_scene.get(key, [])
-        if not candidates:
-            continue
-        # Prefer longer usable motion, then deterministic path ordering.
-        source = sorted(candidates, key=lambda p: (-probe(ffprobe, p), str(p)))[0]
-        selected.append((key, source))
-    fallback = not bool(selected)
-    if fallback:
-        usable = [(p, probe(ffprobe, p)) for p in paths]
-        usable = [(p, d) for p, d in usable if d >= 0.5]
-        if not usable:
-            raise RuntimeError("No playable local MP4 clips found")
-        selected = [("P%02d" % i, p) for i, (p, _) in enumerate(usable[:args.max_shots], 1)]
+        scene = "S%03d" % i
+        folder = base / ("phase6" if i <= 6 else "phase9")
+        source = folder / (scene + ".mp4")
+        if source.is_file() and probe(ffprobe, source) >= 0.5:
+            selected.append((scene, source))
+        else:
+            missing.append(scene)
+    if not selected:
+        raise RuntimeError("No original S001-S019 clips found in phase6/phase9")
+    fallback = False
     manifest = {"status": "rendering", "requested_shots": args.max_shots,
                 "found_shots": len(selected), "missing_scenes":
-                ["S%02d" % i for i in range(1, args.max_shots + 1)
-                 if "S%02d" % i not in {key for key, _ in selected}],
-                "shots": [], "mapping_mode": "unlabelled_preview" if fallback else "scene_labels",
-                "note": "Unlabelled preview order is NOT verified story order"}
+                missing,
+                "shots": [], "mapping_mode": "storyboard",
+                "note": "Ordered by phase8 storyboard, only original S001-S019 clips"}
+    plan = Path(__file__).resolve().parents[1] / "plans" / "phase8_lost_signal_storyboard.json"
+    storyboard = json.loads(plan.read_text(encoding="utf-8"))
+    order = [shot["id"] for act in storyboard["acts"] for shot in act["shots"]]
+    selected.sort(key=lambda pair: order.index(pair[0]))
     segments = []
     for scene, source in selected:
         duration = probe(ffprobe, source)
