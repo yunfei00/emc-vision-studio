@@ -34,7 +34,8 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     paths = sorted({p.resolve() for folder in ("phase6", "phase9")
                     for p in (base / folder).rglob("*.mp4") if p.is_file()})
-    # Recognize scene labels anywhere in filename, e.g. shot_S01_take2.mp4.\n    # If no labels exist, use a deterministic preview-only fallback.
+    # Recognize scene labels anywhere in filename, e.g. shot_S01_take2.mp4.
+    # If no labels exist, use a deterministic preview-only fallback.
     by_scene = {}
     for path in paths:
         m = re.search(r"(?<![A-Za-z0-9])S(0[1-9]|1[0-9])(?![0-9])", path.stem, re.I)
