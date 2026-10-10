@@ -1,60 +1,47 @@
-# V100 首图推理失败：CUDA Error Operation Not Supported
+# V100 推理失败：获取真正报错节点和 traceback
 
-## 已确认的事实
+## 已知结果
 
-- 模型已经手动下载完成（用户反馈）。
-- ComfyUI 开始生成时，GPU 报 `RuntimeError: CUDA error: operation not supported`（用户反馈）。
-- 之前的 CUDA 矩阵测试通过，**不代表卷积、注意力算子和模型推理均可用**。
-- 当前尚无完整 Python traceback、GPU 驱动版本和故障节点，**不能断言一定是驱动太旧**。V100（sm_70）对部分较新的加速算子存在兼容限制。
+用户已完成以下验证：Tesla V100S PCIe 32GB、sm_70、PyTorch 2.7.0+cu126，CUDA 可用；**FP32 矩阵乘法、FP32 卷积和 SDPA 三项均 PASS**。但是 Stable Diffusion 实际执行时报 `CUDA error: operation not supported`。
 
-## 第一步：停止正在运行的 ComfyUI
+这说明基本 CUDA 算子可用，**不能据此认定是显卡驱动过旧，也不能认为所有 ComfyUI 算子都可用**。CUDA 错误可能异步报告，报错位置不一定是实际失败算子。需要获得失败节点和完整 Python traceback。
 
-在 ComfyUI 的 PowerShell 窗口按 `Ctrl+C`，确保旧进程已退出。不要同时启动两个占用 8188 端口的实例。
+## 已做的代码改动
 
-## 第二步：拉取修复脚本
+`scripts/generate_first_image.ps1` 现在提交任务后会持续查询 ComfyUI 的 `/history/{prompt_id}`，自动打印：
 
-在 `emc-vision-studio` 仓库根目录打开 PowerShell：
+- `FAILED NODE`：出错节点 ID 和类型
+- `EXCEPTION`：异常名称和内容
+- `TRACEBACK`：ComfyUI 返回的 Python traceback
+- 成功时显示 `GENERATION COMPLETE` 和输出文件信息
+
+不再只打印 `QUEUE SUBMITTED` 就结束。
+
+## 操作步骤
+
+1. 关闭旧 ComfyUI 窗口（按 Ctrl+C），不要同时运行两个 ComfyUI 实例。
+2. 在项目根目录执行：
 
 ```powershell
 git pull
 ```
 
-## 第三步：先进行分项 GPU 算子测试
-
-**2026-10-10 修复：** 诊断代码已从 PowerShell 多行字符串移到独立的 `scripts/diagnose_v100_inference.py`，PowerShell 仅调用 Python 文件，避免 Windows PowerShell 5.1 对引号、多行参数的解析差异。必须先执行上面的 `git pull`，确保两个文件均更新。
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\diagnose_v100_inference.ps1 -Root "D:\AI-Video"
-```
-
-此测试会输出 Python/PyTorch/CUDA/GPU 架构，并分别测试 `fp32 matmul`、`fp32 convolution` 和 `math SDPA`。如果某项显示 FAIL，请保留完整报错。
-
-## 第四步：启动 V100 兼容模式
+3. 以兼容模式启动 ComfyUI：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\start_windows_v100.ps1 -Root "D:\AI-Video" -SafeMode
 ```
 
-此模式尝试关闭 xFormers、自定义节点，使用 split cross attention，并强制 FP32 模型与 VAE，便于避开可能不兼容的半精度或高性能注意力实现。**FP32 会增加显存占用、速度可能降低。** 不保证解决所有驱动/算子问题。
-
-若启动阶段提示 `unrecognized arguments`，说明当前 ComfyUI 版本可能不支持其中某项参数，请记录错误，不要自行乱改驱动。
-
-## 第五步：重新提交图片生成任务
-
-另开一个 PowerShell 窗口，仍在仓库根目录：
+4. 在**另一个 PowerShell 窗口**，项目根目录执行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\generate_first_image.ps1 -Root "D:\AI-Video" -Model modelscope
 ```
 
-查看 ComfyUI 控制台是否生成成功。默认输出目录 `D:\AI-Video\ComfyUI\output`。
+5. 如果失败，发送第二个窗口中 `FAILED NODE`、`EXCEPTION`、`TRACEBACK` 的输出。如果 history 没有 traceback，请发送 ComfyUI 服务窗口里 `Exception during processing` 附近的完整日志。
 
-## 如果仍失败
+## 下一步处理原则
 
-请提供：
+根据实际失败节点再判断是模型加载、采样器、VAE、注意力实现还是驱动 / PyTorch 组合问题。**暂时不重装环境、不重新下载模型**。
 
-1. 第三步的 `PASS/FAIL` 结果和失败 traceback；
-2. ComfyUI 控制台中 `RuntimeError` 前后约 20 行；
-3. `nvidia-smi` 显示的 Driver Version。
-
-**暂时不要**升级显卡驱动、重新安装 PyTorch、删除模型或关闭 TLS 证书验证。先定位出错算子，再选择最小修复。
+注意：这里的 CUDA 错误提示 `Compile with TORCH_USE_CUDA_DSA to enable device-side assertions` 只是 PyTorch 的通用建议，并不代表必须编译 PyTorch 才能排查。
