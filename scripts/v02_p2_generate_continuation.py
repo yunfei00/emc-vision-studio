@@ -91,8 +91,8 @@ def main():
         if not source.is_file():
             raise FileNotFoundError(str(source))
         shutil.copy2(source, frames_dir / ("frame_%03d.png" % index))
-    target = folder / ""+ args.scene + "_continuation.mp4"
-    temp = folder / ""+ args.scene + "_continuation.tmp.mp4"
+    target = folder / (args.scene + "_continuation.mp4")
+    temp = folder / (args.scene + "_continuation.tmp.mp4")
     subprocess.run(
         [ffmpeg, "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
          "-framerate", "6", "-i", str(frames_dir / "frame_%03d.png"),
