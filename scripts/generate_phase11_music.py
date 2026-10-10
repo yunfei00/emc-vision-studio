@@ -78,23 +78,30 @@ def main():
     voice = audio / "voice_103s.wav"
     if not source.is_file() or not voice.is_file():
         raise FileNotFoundError("Existing burned-subtitle video or voice_103s.wav missing. Complete Phase 10 first.")
-    if abs(probe(ffprobe, source) - DURATION) > 3 or abs(probe(ffprobe, voice) - DURATION) > 3:
-        raise RuntimeError("Input durations do not match the 103-second timeline")
+    video_duration = probe(ffprobe, source)
+    voice_duration = probe(ffprobe, voice)
+    if video_duration < 1 or voice_duration < 1:
+        raise RuntimeError("Video or voice is empty")
+    print("Input durations: video=%.3fs, voice=%.3fs; normalizing audio to 103s" % (video_duration, voice_duration), flush=True)
+    if video_duration < DURATION - 1:
+        print("WARNING: video is shorter than 103s; extending final frame locally", flush=True)
     music = audio / "original_score_103s.wav"
     print("Generating original 103-second score locally...", flush=True)
     create_music(music)
     target = base / "lost_signal_phase10_voiced.mp4"
     tmp = base / "lost_signal_phase10_voiced_new.tmp.mp4"
     # Compress voice slightly and duck the music during spoken segments.
-    filters = ("[1:a]aresample=48000,acompressor=threshold=0.08:ratio=2.5:attack=15:release=180,"
+    filters = ("[1:a]aresample=48000,apad,atrim=duration=103,asetpts=PTS-STARTPTS,acompressor=threshold=0.08:ratio=2.5:attack=15:release=180,"
                "volume=1.2,alimiter=limit=0.90,asplit=2[v][side];"
-               "[2:a]aresample=48000,volume=0.38[m];"
+               "[2:a]aresample=48000,apad,atrim=duration=103,asetpts=PTS-STARTPTS,volume=0.38[m];"
                "[m][side]sidechaincompress=threshold=0.018:ratio=7:attack=45:release=350[duck];"
                "[v][duck]amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.92[a]")
+    video_input = ["-i", str(source)] if video_duration >= DURATION - 0.1 else ["-i", str(source)]
+    video_filters = ["-vf", "tpad=stop_mode=clone:stop_duration=103,trim=duration=103", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20"] if video_duration < DURATION - 0.1 else ["-c:v", "copy"]
     subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
-                    "-i", str(source), "-i", str(voice), "-i", str(music),
+                    *video_input, "-i", str(voice), "-i", str(music),
                     "-filter_complex", filters, "-map", "0:v:0", "-map", "[a]",
-                    "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-t", "103",
+                    *video_filters, "-c:a", "aac", "-b:a", "192k", "-t", "103",
                     "-movflags", "+faststart", str(tmp)], check=True)
     if not 100 <= probe(ffprobe, tmp) <= 106:
         raise RuntimeError("New video duration invalid; old version kept")
