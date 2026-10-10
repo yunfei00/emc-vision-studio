@@ -22,7 +22,7 @@ def main():
     parser.add_argument("--repo", required=True)
     parser.add_argument("--voice", default="")
     parser.add_argument("--music", default="")
-    parser.add_argument("--burn-subtitles", action="store_true")
+    parser.add_argument("--soft-subtitles", action="store_true", help="Use selectable MP4 subtitles instead of default burned-in subtitles")
     args = parser.parse_args()
     root, repo = pathlib.Path(args.root), pathlib.Path(args.repo)
     ffmpeg = shutil.which("ffmpeg")
@@ -77,20 +77,25 @@ def main():
                 "-map", "0:v:0", "-map", "[a]", "-c:a", "aac", "-b:a", "192k"]
     else:
         cmd += ["-map", "0:v:0", "-map", "0:a:0?", "-c:a", "copy"]
-    # Prefer a soft subtitle stream to avoid Windows drawtext/font dependencies.
-    if args.burn_subtitles:
-        print("Burn-in requested, but not supported in this baseline; using selectable SRT track instead.", flush=True)
-    cmd += ["-map", str(subtitle_input_index) + ":s:0",
-            "-c:s", "mov_text", "-c:v", "copy", "-t", "103", "-movflags", "+faststart", str(target)]
-    ffmpeg_run(cmd)
+    if args.soft_subtitles:
+        cmd += ["-map", str(subtitle_input_index) + ":s:0", "-c:s", "mov_text", "-c:v", "copy"]
+    else:
+        filters = subprocess.run([ffmpeg, "-hide_banner", "-filters"], capture_output=True, text=True, errors="replace", check=True)
+        if not any(line.strip().split()[1:2] == ["subtitles"] for line in filters.stdout.splitlines()):
+            raise RuntimeError("This FFmpeg build lacks the subtitles/libass filter. Install a full FFmpeg build or use --soft-subtitles.")
+        # Work from the subtitle directory to avoid Windows drive-letter escaping in the FFmpeg filter expression.
+        cmd += ["-vf", "subtitles=lost_signal_zh.srt:charenc=UTF-8:force_style='FontName=Microsoft YaHei,FontSize=22,Outline=2,Shadow=1,Alignment=2,MarginV=34'",
+                "-c:v", "libx264", "-preset", "veryfast", "-crf", "19"]
+    cmd += ["-t", "103", "-movflags", "+faststart", str(target)]
+    subprocess.run(cmd, check=True, cwd=str(output))
     (output / "manifest.json").write_text(json.dumps({
         "status": "complete", "duration_seconds": 103, "subtitles": str(subtitle),
         "video": str(target), "voice_included": bool(voice), "music_included": bool(music),
-        "subtitle_mode": "selectable_mov_text_not_burned_in"}, ensure_ascii=False, indent=2), encoding="utf-8")
+        "subtitle_mode": "selectable_mov_text" if args.soft_subtitles else "burned_in"}, ensure_ascii=False, indent=2), encoding="utf-8")
     print("PHASE 10 EXPORT COMPLETE:", target, flush=True)
     print("SUBTITLE FILE:", subtitle, flush=True)
     print("VOICE INCLUDED:", bool(voice), "MUSIC INCLUDED:", bool(music), flush=True)
-    print("SUBTITLES: selectable track, enable in player", flush=True)
+    print("SUBTITLES:", "selectable track" if args.soft_subtitles else "burned into video", flush=True)
 
 if __name__ == "__main__":
     try:
