@@ -21,6 +21,8 @@ git pull
 
 ## 第三步：先进行分项 GPU 算子测试
 
+**2026-10-10 修复：** 诊断代码已从 PowerShell 多行字符串移到独立的 `scripts/diagnose_v100_inference.py`，PowerShell 仅调用 Python 文件，避免 Windows PowerShell 5.1 对引号、多行参数的解析差异。必须先执行上面的 `git pull`，确保两个文件均更新。
+
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\diagnose_v100_inference.ps1 -Root "D:\AI-Video"
 ```
