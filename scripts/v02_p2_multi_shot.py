@@ -50,13 +50,19 @@ def main():
         # Prefer longer usable motion, then deterministic path ordering.
         source = sorted(candidates, key=lambda p: (-probe(ffprobe, p), str(p)))[0]
         selected.append((key, source))
-    if not selected:
-        raise RuntimeError("No scene-labelled S01-S19 clips found")
+    fallback = not bool(selected)
+    if fallback:
+        usable = [(p, probe(ffprobe, p)) for p in paths]
+        usable = [(p, d) for p, d in usable if d >= 0.5]
+        if not usable:
+            raise RuntimeError("No playable local MP4 clips found")
+        selected = [("P%02d" % i, p) for i, (p, _) in enumerate(usable[:args.max_shots], 1)]
     manifest = {"status": "rendering", "requested_shots": args.max_shots,
                 "found_shots": len(selected), "missing_scenes":
                 ["S%02d" % i for i in range(1, args.max_shots + 1)
                  if "S%02d" % i not in {key for key, _ in selected}],
-                "shots": [], "mapping_mode": "unlabelled_preview" if fallback else "scene_labels",\n                "note": "Unlabelled preview order is NOT verified story order"}
+                "shots": [], "mapping_mode": "unlabelled_preview" if fallback else "scene_labels",
+                "note": "Unlabelled preview order is NOT verified story order"}
     segments = []
     for scene, source in selected:
         duration = probe(ffprobe, source)
