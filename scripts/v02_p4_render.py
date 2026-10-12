@@ -42,7 +42,7 @@ def svd_render(image, output, scene, root, server, timeout):
       "1":{"class_type":"ImageOnlyCheckpointLoader","inputs":{"ckpt_name":"svd.safetensors"}},
       "2":{"class_type":"LoadImage","inputs":{"image":filename}},
       "3":{"class_type":"SVD_img2vid_Conditioning","inputs":{"width":1024,"height":576,
-          "video_frames":14,"motion_bucket_id":42,"fps":6,"augmentation_level":0,
+          "video_frames":14,"motion_bucket_id":28,"fps":6,"augmentation_level":0,
           "clip_vision":["1",1],"init_image":["2",0],"vae":["1",2]}},
       "4":{"class_type":"VideoLinearCFGGuidance","inputs":{"model":["1",0],"min_cfg":1}},
       "5":{"class_type":"KSampler","inputs":{"seed":2026101200+int(scene[1:]),"steps":24,
@@ -90,7 +90,7 @@ def main():
     p.add_argument("--server",default="http://127.0.0.1:8188")
     p.add_argument("--mode",choices=["pilot","all"],default="pilot")
     p.add_argument("--accept-pilot",action="store_true")
-    p.add_argument("--engine",choices=["safe","hybrid"],default="hybrid")
+    p.add_argument("--engine",choices=["safe","hybrid","svd-test"],default="hybrid")
     p.add_argument("--timeout",type=int,default=2400)
     args = p.parse_args()
     if args.mode=="all" and not args.accept_pilot:
@@ -122,7 +122,7 @@ def main():
         target = scene_dir/(sid+".mp4")
         method,pid = "safe",None
         # Default pilot uses safe motion on all 3 sensitive test shots.
-        if args.engine=="hybrid" and sid not in SAFE:
+        if args.engine=="svd-test" or (args.engine=="hybrid" and sid not in SAFE):
             try:
                 raw = scene_dir/(sid+"_svd_raw.mp4")
                 pid = svd_render(sources[sid],raw,sid,root,args.server.rstrip("/"),args.timeout)
