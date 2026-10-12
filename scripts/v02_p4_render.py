@@ -6,6 +6,7 @@ PLAN = Path(__file__).resolve().parents[1] / "plans/phase8_lost_signal_storyboar
 PILOT = {"S007", "S010", "S016"}
 # Hands and instruments should not be hallucinated by SVD.
 SAFE = {"S007", "S009", "S010", "S011", "S012", "S013", "S014", "S015", "S016", "S017", "S018"}
+REPAIR = {"S007", "S009", "S010", "S011", "S012", "S013", "S014", "S015", "S016", "S017", "S018"}
 
 def api(url, path, data=None):
     body = None if data is None else json.dumps(data).encode()
@@ -88,10 +89,11 @@ def main():
     p = argparse.ArgumentParser(description="P4: pilot or approved full batch")
     p.add_argument("--root",default="D:/AI-Video")
     p.add_argument("--server",default="http://127.0.0.1:8188")
-    p.add_argument("--mode",choices=["pilot","all"],default="pilot")
+    p.add_argument("--mode",choices=["pilot","all","repair"],default="pilot")
     p.add_argument("--accept-pilot",action="store_true")
     p.add_argument("--engine",choices=["safe","hybrid","svd-test"],default="hybrid")
     p.add_argument("--timeout",type=int,default=2400)
+    
     args = p.parse_args()
     if args.mode=="all" and not args.accept_pilot:
         p.error("Review pilot videos first, then pass --accept-pilot")
@@ -102,7 +104,7 @@ def main():
     if len(shots)!=19 or sum(s["seconds"] for s in shots)!=103: raise RuntimeError("Storyboard invalid")
     manifest = json.loads((base/"manifest.json").read_text(encoding="utf-8-sig"))
     records = {r["shot"]:r for r in manifest["shots"]}
-    selected = [s for s in shots if args.mode=="all" or s["id"] in PILOT]
+    selected = [s for s in shots if (args.mode=="all" or (args.mode=="repair" and s["id"] in REPAIR) or (args.mode=="pilot" and s["id"] in PILOT))]
     sources = {}
     for shot in selected:
         sid = shot["id"]
@@ -111,7 +113,7 @@ def main():
             raise FileNotFoundError(f"{sid}: invalid image path {src}")
         sources[sid] = src
     if not shutil.which("ffmpeg") or not shutil.which("ffprobe"): raise RuntimeError("FFmpeg missing")
-    out = base/"p4"/("pilot" if args.mode=="pilot" else "full")
+    out = base/"p4"/("pilot" if args.mode=="pilot" else ("repair_dynamic" if args.mode=="repair" else "full"))
     out.mkdir(parents=True,exist_ok=True)
     report = {"mode":args.mode,"engine":args.engine,"status":"running","shots":[],
               "warnings":[],"visual_accepted":False}
@@ -122,7 +124,7 @@ def main():
         target = scene_dir/(sid+".mp4")
         method,pid = "safe",None
         # Default pilot uses safe motion on all 3 sensitive test shots.
-        if args.engine=="svd-test" or (args.engine=="hybrid" and sid not in SAFE):
+        if args.engine=="svd-test" or (args.engine=="hybrid" and (args.mode=="repair" or sid not in SAFE)):
             try:
                 raw = scene_dir/(sid+"_svd_raw.mp4")
                 pid = svd_render(sources[sid],raw,sid,root,args.server.rstrip("/"),args.timeout)
