@@ -18,3 +18,15 @@ cache/
 input-private/
 logs/private/
 # Generated images/videos/audio are tracked using Git LFS where configured
+
+# P4 private local media and reports (never publish)
+private/
+**/private/
+*.mp4
+*.mov
+*.wav
+*.flac
+*.png
+*.jpg
+*.jpeg
+*.webp
