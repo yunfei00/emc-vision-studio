@@ -48,5 +48,9 @@ def main():
     print("GPU:",report["gpu"].get("stdout","").strip())
     print("ComfyUI API:", "READY" if report["comfy_available"] else "NOT READY")
     print("Wan-related local model files:",len(report["model_candidates"]))
-    torch_info=report["torch"] or {}\n    print("Torch in uv environment:", torch_info.get("version", "NOT INSTALLED (acceptable for preflight)"))\n    if torch_info.get("error"): print("Torch import note:", torch_info["error"][:180])\n    print("GPU driver check:", "PASS" if report["gpu"]["ok"] else "CHECK")\n    print("Next: send only the short console output above, not the full JSON.")
+    torch_info=report["torch"] or {}
+    print("Torch in uv environment:", torch_info.get("version", "NOT INSTALLED (acceptable for preflight)"))
+    if torch_info.get("error"): print("Torch import note:", torch_info["error"][:180])
+    print("GPU driver check:", "PASS" if report["gpu"]["ok"] else "CHECK")
+    print("Next: send only the short console output above, not the full JSON.")
 if __name__=="__main__":main()
